@@ -68,7 +68,6 @@ subroutine ImportBinary(FirstRecord, LastRecord, LocCol, fRaw, nrow, ncol, N, Fi
     real(kind = sgl) :: TmpfRaw(nrow, NumCol)
     type(ColType) :: TmpCol(MaxNumCol)
 
-
     FileEndReached = .false.
 
     !> Detect first byte of data (skip ASCII header)
@@ -80,101 +79,111 @@ subroutine ImportBinary(FirstRecord, LastRecord, LocCol, fRaw, nrow, ncol, N, Fi
     head_nlines = 0
     LastByteHeader = 0
 
-    if (Binary%head_nlines > 0) then
-        select case(Binary%ascii_head_eol)
-            !> Windows case (CR/LF carriage control)
-            case ('CR/LF')
-            do
-                paux = aux
-                nrec = nrec + 1
-                read(unat, rec = nrec, iostat = io_status) aux
-                if (io_status /= 0) exit
-                if (aux == 10_1 .and. paux == 13_1) then
-                    head_nlines = head_nlines + 1
-                    if (head_nlines == Binary%head_nlines) then
-                        LastByteHeader = nrec
-                        exit
-                    end if
-                end if
-            end do
-            !> Unix case (LF carriage control)
-            case ('LF')
-            do
-                nrec = nrec + 1
-                read(unat, rec = nrec, iostat = io_status) aux
-                if (io_status /= 0) exit
-                if (aux == 10_1) then
-                    head_nlines = head_nlines + 1
-                    if (head_nlines == Binary%head_nlines) then
-                        LastByteHeader = nrec
-                        exit
-                    end if
-                end if
-            end do
-            !> Mac case (CR carriage control)
-            case ('CR')
-            do
-                nrec = nrec + 1
-                read(unat, rec = nrec, iostat = io_status) aux
-                if (io_status /= 0) exit
-                if (aux == 13_1) then
-                    head_nlines = head_nlines + 1
-                    if (head_nlines == Binary%head_nlines) then
-                        LastByteHeader = nrec
-                        exit
-                    end if
-                end if
-            end do
-        end select
-    end if
-
-    !> If present, header has been identified and skipped, now read data
-    rec_num = LastByteHeader
-    i = 0
-    N = 0
-    record_loop: do
-        i = i + 1
-        do j = 1, NumCol
-            !> For each variable, read <nbytes> bytes
-            do i = 1, Binary%nbytes
-                read(unat, rec = rec_num + 2 * j + i - 2, iostat = io_status) b(i)
-                !> In case of binary files, any problem in reading the file
-                !> causes EP to skip it until its end.
-                if (io_status /= 0) then
-                    FileEndReached = .true.
-                    exit record_loop
-                end if
-            end do
-            !> join bytes to create variable value
-            IntRec(j) = 0_2
-            if (Binary%little_endian) then
-                !> little endian
-                do i = 1, Binary%nbytes
-                    do k = 0, 7
-                        if (btest(b(i), k)) IntRec(j) = IBSET(IntRec(j), k + 8 * (i-1))
+    select case (trim(adjustl(EddyProProj%ftype)))
+        case('generic_bin')
+            if (Binary%head_nlines > 0) then
+                select case(Binary%ascii_head_eol)
+                    !> Windows case (CR/LF carriage control)
+                    case ('CR/LF')
+                    do
+                        paux = aux
+                        nrec = nrec + 1
+                        read(unat, rec = nrec, iostat = io_status) aux
+                        if (io_status /= 0) exit
+                        if (aux == 10_1 .and. paux == 13_1) then
+                            head_nlines = head_nlines + 1
+                            if (head_nlines == Binary%head_nlines) then
+                                LastByteHeader = nrec
+                                exit
+                            end if
+                        end if
                     end do
-                end do
-            else
-                !> big endian
-                do i = 1, Binary%nbytes
-                    do k = 0, 7
-                        if (btest(b(i), k)) IntRec(j) = IBSET(IntRec(j), (Binary%nbytes - i) * 8 + k)
+                    !> Unix case (LF carriage control)
+                    case ('LF')
+                    do
+                        nrec = nrec + 1
+                        read(unat, rec = nrec, iostat = io_status) aux
+                        if (io_status /= 0) exit
+                        if (aux == 10_1) then
+                            head_nlines = head_nlines + 1
+                            if (head_nlines == Binary%head_nlines) then
+                                LastByteHeader = nrec
+                                exit
+                            end if
+                        end if
                     end do
-                end do
+                    !> Mac case (CR carriage control)
+                    case ('CR')
+                    do
+                        nrec = nrec + 1
+                        read(unat, rec = nrec, iostat = io_status) aux
+                        if (io_status /= 0) exit
+                        if (aux == 13_1) then
+                            head_nlines = head_nlines + 1
+                            if (head_nlines == Binary%head_nlines) then
+                                LastByteHeader = nrec
+                                exit
+                            end if
+                        end if
+                    end do
+                end select
             end if
-        end do
-        rec_num = rec_num + (NumCol * Binary%nbytes)
 
-        !> Cycle until FirstRecord.
-        if (i < FirstRecord) cycle record_loop
+            !> If present, header has been identified and skipped, now read data
+            rec_num = LastByteHeader
+            i = 0
+            N = 0
+            record_loop: do
+                i = i + 1
+                do j = 1, NumCol
+                    !> For each variable, read <nbytes> bytes
+                    do i = 1, Binary%nbytes
+                        read(unat, rec = rec_num + 2 * j + i - 2, iostat = io_status) b(i)
+                        !> In case of binary files, any problem in reading the file
+                        !> causes EP to skip it until its end.
+                        if (io_status /= 0) then
+                            FileEndReached = .true.
+                            exit record_loop
+                        end if
+                    end do
+                    !> join bytes to create variable value
+                    IntRec(j) = 0_2
+                    if (Binary%little_endian) then
+                        !> little endian
+                        do i = 1, Binary%nbytes
+                            do k = 0, 7
+                                if (btest(b(i), k)) IntRec(j) = IBSET(IntRec(j), k + 8 * (i-1))
+                            end do
+                        end do
+                    else
+                        !> big endian
+                        do i = 1, Binary%nbytes
+                            do k = 0, 7
+                                if (btest(b(i), k)) IntRec(j) = IBSET(IntRec(j), (Binary%nbytes - i) * 8 + k)
+                            end do
+                        end do
+                    end if
+                end do
+                rec_num = rec_num + (NumCol * Binary%nbytes)
 
-        !> Normal exit
-        if (N > LastRecord - FirstRecord) exit record_loop
+                !> Cycle until FirstRecord.
+                if (i < FirstRecord) cycle record_loop
 
-        N = N + 1
-        TmpfRaw(N, :) = IntRec(:)
-    end do record_loop
-    close(udf)
+                !> Normal exit
+                if (N > LastRecord - FirstRecord) exit record_loop
+
+                N = N + 1
+                TmpfRaw(N, :) = IntRec(:)
+            end do record_loop
+            close(udf)
+            
+        case('float_32')
+            print *, 'Custom float-32 import'
+            read(unat) TmpfRaw
+            close(udf)
+            N = SIZE(TmpfRaw,1)
+            
+    end select
 
     !> Store only hot columns
     jj = 0
@@ -183,9 +192,11 @@ subroutine ImportBinary(FirstRecord, LastRecord, LocCol, fRaw, nrow, ncol, N, Fi
             jj = jj + 1
             TmpCol(jj) = LocCol(j)
             fRaw(1:N, jj) = TmpfRaw(1:N, j)
+            fRaw(1, jj) = TmpfRaw(1, j)
             if (Gas4CalRefCol == j) Gas4CalRefCol = jj
         end if
     end do
     LocCol = TmpCol
+
     close(unat)
 end subroutine ImportBinary

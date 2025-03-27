@@ -87,6 +87,8 @@ subroutine WriteProcessingProjectVariables()
         EddyProProj%ftype = 'generic_bin'
         case ('6')
         EddyProProj%ftype = 'alteddy_bin'
+        case ('7')
+        EddyProProj%ftype = 'float_32'
     end select
 
     !> If file type is different from GHG, metadata

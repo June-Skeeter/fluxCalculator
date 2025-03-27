@@ -110,6 +110,18 @@ subroutine ImportNativeData(Filepath, FirstRecord, LastRecord, LocCol, &
                 skip_file = .true.
                 return
             end if
+            
+        case ('float_32')
+            ! open(unat, file = trim(adjustl(Filepath)), access='direct', &
+            !     form = 'unformatted', recl = 1, iostat = io_status)
+            
+            open(unit=unat, file=trim(adjustl(Filepath)), access="stream", &
+                 form="unformatted", status="old",iostat = io_status)
+            if (io_status /= 0) then
+                call ExceptionHandler(55)
+                skip_file = .true.
+                return
+            end if
 
         case ('tob1')
             !> If number of header rows is /= 0, open file in TEXT mode to
@@ -248,6 +260,10 @@ subroutine ReadNativeFile(Filepath, FirstRecord, LastRecord, rec_len, &
                 fRaw, size(fRaw, 1), size(fRaw, 2), N, FileEndReached)
 
         case('generic_bin')
+            call ImportBinary(FirstRecord, LastRecord, LocCol, &
+                fRaw, size(fRaw, 1), size(fRaw, 2), N, FileEndReached)
+                
+        case('float_32')
             call ImportBinary(FirstRecord, LastRecord, LocCol, &
                 fRaw, size(fRaw, 1), size(fRaw, 2), N, FileEndReached)
         end select
