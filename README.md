@@ -1,3 +1,6 @@
+This is a personal fork of eddypro sourcecode which I've modified to facilitate automation of EddyPro and improve performance with data stored in a binary format.
+
+
 # Welcome to EddyPro&reg;
 
 EddyPro&reg; is a powerful open source software application for processing eddy
