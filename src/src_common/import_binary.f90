@@ -179,6 +179,7 @@ subroutine ImportBinary(FirstRecord, LastRecord, LocCol, fRaw, nrow, ncol, N, Fi
             
         case('float_32')
             print *, 'Custom float-32 import'
+
             read(unat) TmpfRaw
             ! read(unat, *, iostat = io_status) TmpfRaw
             ! if (io_status /= 0) then 
