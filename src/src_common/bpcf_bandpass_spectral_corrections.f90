@@ -240,7 +240,7 @@ function DefaultSonicOutputRate(model)
             DefaultSonicOutputRate = 40
         case('r2')
             DefaultSonicOutputRate = 50
-        case('csat3', 'csat3b')
+        case('csat3', 'csat3b', 'irgason')
             DefaultSonicOutputRate = 60
         case('81000', '81000v', '81000re', '81000vre')
             DefaultSonicOutputRate = 160

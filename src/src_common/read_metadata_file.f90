@@ -245,7 +245,7 @@ subroutine WriteEddyProMetadataVariables(LocCol, printout)
                         Instr(i)%firm = 'gill'
                     case('usa1_standard', 'usa1_fast', 'usoni3_classa_mp', 'usoni3_cage_mp')
                         Instr(i)%firm = 'metek'
-                    case('csat3', 'csat3b')
+                    case('csat3', 'csat3b', 'irgason')
                         Instr(i)%firm = 'csi'
                     case('81000', '81000v', '81000re', '81000vre')
                         Instr(i)%firm = 'young'
@@ -326,7 +326,7 @@ subroutine WriteEddyProMetadataVariables(LocCol, printout)
                 select case (Instr(i)%model(1:len_trim(Instr(i)%model) - 2))
                     case ('li7700', 'li7500', 'li7500a', 'li7500rs', 'li7500ds', &
                         'generic_open_path', 'open_path_krypton', &
-                        'open_path_lyman')
+                        'open_path_lyman', 'irgason')
                         Instr(i)%path_type = 'open'
                     case default
                         Instr(i)%path_type = 'closed'

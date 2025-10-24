@@ -71,12 +71,15 @@ subroutine AnalyticLowPassTransferFunction(nf, N, var, LocInstr, loc_var_present
         select case(var)
             case (u, v, w, ts)
                 sonic_freq = 1d0 / LocInstr(sonic)%tau
+                !> normalized frequency
+                !> More 1986 fig 2
                 fp_sonic(1:N) = &
                     nf(1:N) * dabs(LocInstr(sonic)%vpath_length / wind_speed)
                 !> sonic dynamic frequency response
                 BPTF(1:N)%LP(var)%dsonic = &
                     1.d0 / dsqrt(1.d0 + (2.d0 * p * nf(1:N) / sonic_freq)**2 )
                 !> sonic path-averaging
+                !> More 1986 eq9
                 BPTF(1:N)%LP(var)%wsonic = &
                     (2.d0 / (p * fp_sonic(1:N))) * (1.d0 + dexp(-2.d0 * p * fp_sonic(1:N)) / 2.d0 &
                     - 3.d0 * (1.d0 - dexp(-2.d0 * p * fp_sonic(1:N))) / (4.d0 * p * fp_sonic(1:N)))

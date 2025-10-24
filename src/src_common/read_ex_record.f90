@@ -349,7 +349,7 @@ subroutine CompleteEssentials(lEx)
     do igas = ico2, igas4
         select case (lEx%instr(igas)%model(1:len_trim(lEx%instr(igas)%model) - 2))
         case ('li7700', 'li7500', 'li7500a', 'li7500rs', 'li7500ds', &
-            'generic_open_path', 'open_path_krypton', 'open_path_lyman')
+            'generic_open_path', 'open_path_krypton', 'open_path_lyman', 'irgason')
                 lEx%instr(igas)%path_type = 'open'
             case default
                 lEx%instr(igas)%path_type = 'closed'

@@ -101,5 +101,9 @@ subroutine OverrideMasterSonicRelatedSettings()
     !> Cross wind correction should not be applied for CSAT3B
     if (MasterSonic%model(1:len_trim(MasterSonic%model) - 2) == 'csat3b') &
         RPsetup%calib_cw = .false.
+        
+    !> Cross wind correction should not be applied for CSAT3B
+    if (MasterSonic%model(1:len_trim(MasterSonic%model) - 2) == 'irgason') &
+        RPsetup%calib_cw = .false.
 
 end subroutine OverrideMasterSonicRelatedSettings

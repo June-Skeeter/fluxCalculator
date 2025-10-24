@@ -475,7 +475,7 @@ subroutine FixDynamicMetadata()
                 DynamicMetadata%instr(j)%firm = 'gill'
             case('usa1_standard', 'usa1_fast', 'usoni3_classa_mp', 'usoni3_cage_mp')
                 DynamicMetadata%instr(j)%firm = 'metek'
-            case('csat3', 'csat3b')
+            case('csat3', 'csat3b', 'irgason')
                 DynamicMetadata%instr(j)%firm = 'csi'
             case('81000', '81000v', '81000re', '81000vre')
                 DynamicMetadata%instr(j)%firm = 'young'
@@ -515,7 +515,7 @@ subroutine FixDynamicMetadata()
         if (DynamicMetadata%instr(j)%category == 'irga') then
             select case (DynamicMetadata%instr(j)%model(1:len_trim(DynamicMetadata%instr(j)%model) - 2))
                 case ('li7700', 'li7500', 'li7500a', 'li7500rs', 'li7500ds', 'generic_open_path', &
-                    'open_path_krypton', 'open_path_lyman')
+                    'open_path_krypton', 'open_path_lyman', 'irgason')
                     DynamicMetadata%instr(j)%path_type = 'open'
                 case ('none')
                     continue
