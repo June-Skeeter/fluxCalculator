@@ -82,7 +82,7 @@ subroutine MetadataFileValidation(LocCol, passed, faulty_col)
                 select case &
                     (LocCol(i)%instr%model(1:len_trim(LocCol(i)%instr%model)-2))
                     case ('li7500', 'li7500a', 'li7500rs', 'li7500ds', 'li7200', &
-                        'li7200rs', 'li7700', 'li6262', 'li7000')
+                        'li7200rs', 'li7700', 'li6262', 'li7000', 'irgason')
                         passed(1) = .false.
                         passed(25) = .false.
                         faulty_col = i
@@ -100,7 +100,7 @@ subroutine MetadataFileValidation(LocCol, passed, faulty_col)
                     case ('hs_50', 'hs_100', 'r2', 'r3_50', 'r3_100', &
                         'r3a_100', 'wm', 'wmpro', 'usa1_standard', &
                         'usa1_fast', 'usoni3_classa_mp', 'usoni3_cage_mp', &
-                        'csat3', 'csat3b', &
+                        'csat3', 'csat3b', 'irgason', &
                         '81000', '81000v', '81000re', '81000vre')
                         passed(1) = .false.
                         passed(26) = .false.
@@ -244,7 +244,7 @@ subroutine InstrumentValidation(LocInstr, LocCol, passed)
             !> check model
             select case (LocInstr%model(1:len_trim(LocInstr%model)-2))
                 case ('li7500', 'li7500a', 'li7500rs', 'li7500ds', 'li7200', &
-                    'li7200rs', 'li7700', 'li6262', 'li7000')
+                    'li7200rs', 'li7700', 'li6262', 'li7000', 'irgason')
                     continue
                 case ('generic_open_path', 'generic_closed_path')
                     if (LocInstr%hpath_length * LocInstr%vpath_length * LocInstr%tau == 0) then
