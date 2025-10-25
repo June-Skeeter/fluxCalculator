@@ -47,35 +47,35 @@ subroutine RetrieveSensorParams()
     !> anemometer parameters
     select case(E2Col(u)%Instr%model(1:len_trim(E2Col(u)%Instr%model) - 2))
         case('hs_50')
-            E2Col(u:ts)%Instr%vpath_length = 0.125d0
+            E2Col(u:ts)%Instr%vpath_length = 0.15d0
             E2Col(u:ts)%Instr%hpath_length = 0.110d0
             E2Col(u:ts)%Instr%tau = 1d0 / 50d0
         case('hs_100')
-            E2Col(u:ts)%Instr%vpath_length = 0.125d0
+            E2Col(u:ts)%Instr%vpath_length = 0.15d0
             E2Col(u:ts)%Instr%hpath_length = 0.110d0
             E2Col(u:ts)%Instr%tau = 1d0 / 100d0
         case('r2')
-            E2Col(u:ts)%Instr%vpath_length = 0.125d0
+            E2Col(u:ts)%Instr%vpath_length = 0.15d0
             E2Col(u:ts)%Instr%hpath_length = 0.110d0
             E2Col(u:ts)%Instr%tau = 1d0 / 50.d0
         case('r3_50')
-            E2Col(u:ts)%Instr%vpath_length = 0.125d0
+            E2Col(u:ts)%Instr%vpath_length = 0.15d0
             E2Col(u:ts)%Instr%hpath_length = 0.110d0
             E2Col(u:ts)%Instr%tau = 1d0 / 50d0
         case('r3_100')
-            E2Col(u:ts)%Instr%vpath_length = 0.125d0
+            E2Col(u:ts)%Instr%vpath_length = 0.15d0
             E2Col(u:ts)%Instr%hpath_length = 0.110d0
             E2Col(u:ts)%Instr%tau = 1d0 / 100d0
         case('r3a_100')
-            E2Col(u:ts)%Instr%vpath_length = 0.125d0
+            E2Col(u:ts)%Instr%vpath_length = 0.15d0
             E2Col(u:ts)%Instr%hpath_length = 0.110d0
             E2Col(u:ts)%Instr%tau = 1d0 / 100d0
         case('wm')
-            E2Col(u:ts)%Instr%vpath_length = 0.125d0
+            E2Col(u:ts)%Instr%vpath_length = 0.15d0
             E2Col(u:ts)%Instr%hpath_length = 0.110d0
             E2Col(u:ts)%Instr%tau = 1d0 / 32d0
         case('wmpro')
-            E2Col(u:ts)%Instr%vpath_length = 0.125d0
+            E2Col(u:ts)%Instr%vpath_length = 0.15d0
             E2Col(u:ts)%Instr%hpath_length = 0.110d0
             E2Col(u:ts)%Instr%tau = 1d0 / 40d0
         case('usoni3_cage_mp')
