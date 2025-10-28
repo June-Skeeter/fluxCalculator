@@ -81,6 +81,7 @@ COMMON_OBJS_f90d1=$(patsubst %.f90, %.o, $(COMMON_SRCS_f90d1))
 
 #CFLAGS = -ffpe-trap=invalid,zero -Wall -pedantic -fall-intrinsics -fbounds-check -Wextra -Wcharacter-truncation -Wunderflow -Wno-compare-reals -std=f2003 -O3 -I $(OBJS_DIR)
 #CFLAGS = -g -fcheck=all -Wall -pedantic -fall-intrinsics -fbounds-check -Wextra -Wcharacter-truncation -Wunderflow -Wno-compare-reals -std=f2003 -O3 -I $(OBJS_DIR)
+#CFLAGS = -Wno-surprising -Wall -pedantic -fall-intrinsics -fbounds-check -Wextra -Wcharacter-truncation -Wunderflow -Wno-compare-reals -std=f2008 -O3 -I $(OBJS_DIR)
 CFLAGS = -Wno-surprising -Wall -pedantic -fall-intrinsics -fbounds-check -Wextra -Wcharacter-truncation -Wunderflow -Wno-compare-reals -std=f2008 -O3 -I $(abspath $(OBJS_DIR))
 
 VPATH = $(RP_SRC_DIR_f90d1):$(RP_SRC_DIR_Fd2):$(FCC_SRC_DIR_f90d1):$(COMMON_SRC_DIR_f90d1):$(OBJS_DIR)
@@ -88,20 +89,18 @@ RP_OBJS = $(addprefix $(OBJS_DIR), $(RP_OBJS_f90d1) $(RP_OBJS_Fd2)$(COMMON_OBJS_
 FCC_OBJS = $(addprefix $(OBJS_DIR), $(FCC_OBJS_f90d1) $(COMMON_OBJS_f90d1))
 
 $(info $(INFO))
-$(info $(abspath $(OBJS_DIR)))
-
 
 #Targets
 all : rp fcc
 
 rp : $(RP_OBJS_f90d1) $(RP_OBJS_Fd2) $(COMMON_OBJS_f90d1)
 	@$(subst DIR,$(OS_EXE_DIR),$(MAKE_DIR))
-	$(FC) $(LDFLAGS) -o $(EXE_DIR)$(RP_EXE) $(RP_OBJS)
+	$(FC) $(LDFLAGS) -o $(OS_EXE_DIR)$(RP_EXE) $(RP_OBJS)
 	@$(subst DESTINATION, $(OS_OBJS_DIR), $(subst FILE, *.mod, $(MV)))
 
 fcc : $(FCC_OBJS_f90d1) $(COMMON_OBJS_f90d1)
 	@$(subst DIR,$(OS_EXE_DIR),$(MAKE_DIR))
-	$(FC) $(LDFLAGS) -o $(EXE_DIR)$(FCC_EXE) $(FCC_OBJS)
+	$(FC) $(LDFLAGS) -o $(OS_EXE_DIR)$(FCC_EXE) $(FCC_OBJS)
 	@$(subst DESTINATION, $(OS_OBJS_DIR), $(subst FILE, *.mod, $(MV)))
 
 #Compilation

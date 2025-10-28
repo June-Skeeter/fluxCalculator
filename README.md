@@ -8,6 +8,7 @@ The modifications made here include:
 * Improved support for reading high frequency binary files
 * Support for IRGASON as a default instrument
 * Scripts for building from compiling from source code
+* Bugfix in makefile to for compiling on windows
 
 
 ## Setup
