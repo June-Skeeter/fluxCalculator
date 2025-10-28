@@ -23,6 +23,3 @@ obj
 ep_engine_devtools.py
 ship_exes.sh
 
-### Exceptions
-!bin/7za
-!bin/7z.dll
