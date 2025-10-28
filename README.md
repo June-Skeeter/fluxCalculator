@@ -33,7 +33,8 @@ The modifications made here include:
 
 ### For windows:
 
-I'll add the executable later, but if you want to figure out how to install Fortan on windows yourself, go ahead!
+I'll add the executable later, but if you want to install Fortan on windows yourself, go ahead!  You can find guidance [here]
+(https://fortran-lang.org/learn/os_setup/install_gfortran/).  Once you've got it installed, you can run:
 
-Once you've got Fortan installed, you can run: `.\run.bat build`
+`.\run.bat build`
 
