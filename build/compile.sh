@@ -3,11 +3,11 @@
 
 rootdir=$1
 
-echo $rootdir
+# echo $rootdir
     
 rm -rf $rootdir$"/bin" $rootdir$"/obj"
 cd $rootdir/prj
 make rp
 make fcc
-cp $rootdir$"build/7z/7za" $rootdir$"/bin/"
+cp $rootdir$"/build/7z/7za" $rootdir$"/bin/"
 

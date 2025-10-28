@@ -12,11 +12,11 @@ The modifications made here include:
 
 ## Setup
 
-These instructions are for linux only.  Windows option to come later.
+### For linux:
 
 1. Clone the repo
 
-` git clone https://github.com/June-Skeeter/fluxCalculator`
+`git clone https://github.com/June-Skeeter/fluxCalculator`
 
 2. Install dependencies (make & Fortran)
 
@@ -29,3 +29,6 @@ These instructions are for linux only.  Windows option to come later.
 3. Build and run using using the test data
 
 `bash run.sh build run`
+
+### For windows:
+
