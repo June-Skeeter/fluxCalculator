@@ -13,7 +13,12 @@ set "rootdir=%~dp0"
 if "%rootdir:~-1%"=="\" set "rootdir=%rootdir:~0,-1%"
 
 if "%1"=="build" (
-    "%rootdir%\build\compile.bat"
+    rmdir /s /q "%rootdir%\bin\win" >NUL 2>&1
+    rmdir /s /q "%rootdir%\obj" >NUL 2>&1
+    pushd "%rootdir%\prj"
+    make rp
+    make fcc
+    popd
 )
 
 @REM :: Run the program

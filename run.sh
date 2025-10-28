@@ -6,7 +6,11 @@ rootdir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd )
 
 if [ $# -gt 0 ]; then
     if [ $1 = "build" ]; then
-        bash $rootdir$"/build/compile.sh" $rootdir
+        rm -rf $rootdir$"/bin/linux" $rootdir$"/obj"
+        cd $rootdir/prj
+        make rp
+        make fcc
+        cp $rootdir$"/build/7z/7za" $rootdir$"/bin/"
     fi
     # if [[ $1 = "run" || $2 = "run" ]]; then
     #     echo "Running test script"
