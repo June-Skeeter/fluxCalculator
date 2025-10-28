@@ -1,14 +1,24 @@
-@REM # Script to compile the modified EddyPro source code
-@REM # Written by June Skeeter
-@REM # Under development, adaption of linux procedures, no guarantees this will work yet
+:: # Script to compile the modified EddyPro source code
+:: # Written by June Skeeter
+:: # Under development, adaption of linux procedures, no guarantees this will work yet
 
-SET rootdir=%~dp0
 
-cd %rootdir%
+@echo off
+setlocal
 
-rmdir /s /q ..\bin ..\obj
-cd ./prj
+:: Get root directory of the batch script
 
-@REM make rp
-@REM cd ../../
-@REM .\eddypro-engine\bin\win\eddypro_rp.exe -s win C:\Users\User\EP_API_Test\custom\BinTest_win.eddypro
+set "rootdir=%~dp0"
+:: Remove trailing backslash if present
+if "%rootdir:~-1%"=="\" set "rootdir=%rootdir:~0,-1%"
+
+if "%1"=="build" (
+    "%rootdir%\build\compile.bat"
+)
+
+@REM :: Run the program
+@REM pushd "%rootdir%\eddypro-engine"
+@REM "%rootdir%\eddypro-engine\bin\win\eddypro_rp" -s win "%rootdir%\custom\SCL_ecf32_win.eddypro"
+@REM popd
+
+endlocal
