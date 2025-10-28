@@ -4,13 +4,6 @@
 # !/bin/bash
 rootdir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd )
 
-
-# cd ..
-
-# rootdir=$(pwd)
-echo $#
-
-
 if [ $# -gt 0 ]; then
     if [ $1 = "build" ]; then
         bash $rootdir$"/build/compile.sh" $rootdir
