@@ -5,7 +5,7 @@ rootdir=$1
 
 # echo $rootdir
     
-rm -rf $rootdir$"/bin" $rootdir$"/obj"
+rm -rf $rootdir$"/bin/linux" $rootdir$"/obj"
 cd $rootdir/prj
 make rp
 make fcc

@@ -1,5 +1,5 @@
 
-@REM rmdir /s /q "%rootdir%\bin" >NUL 2>&1
+rmdir /s /q "%rootdir%\bin\win" >NUL 2>&1
 rmdir /s /q "%rootdir%\obj" >NUL 2>&1
 
 
@@ -8,4 +8,4 @@ make rp
 make fcc
 popd
 
-copy "%rootdir%\build\7z\7za" ".\bin"
+@REM copy "%rootdir%\build\7z\7za" ".\bin"
