@@ -33,3 +33,5 @@ The modifications made here include:
 
 ### For windows:
 
+I'll add the executable later, but if you want to figure out how to install fortran on windows yourself, go ahead!
+
