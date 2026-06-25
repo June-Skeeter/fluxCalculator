@@ -5,7 +5,7 @@ This code is a "fork" of [EddypPro&reg;](https://github.com/LI-COR-Environmental
 The modifications made here include:
 
 * Correction of path length variables for Gill anemometers
-* Improved support for reading high frequency binary files
+* Improved support for reading high frequency data binary files ".ecf32" files
 * Support for IRGASON as a default instrument
 * Scripts for building from compiling from source code
 * Bugfix in makefile for compiling on windows

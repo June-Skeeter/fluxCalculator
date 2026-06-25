@@ -1,0 +1,120 @@
+Ux:
+  originalName: Ux
+  ignore: false
+  instrument: null
+  unit: m/s
+  dtype: <f4
+  frequency: null
+  variableDescription: Smp
+Uy:
+  originalName: Uy
+  ignore: false
+  instrument: null
+  unit: m/s
+  dtype: <f4
+  frequency: null
+  variableDescription: Smp
+Uz:
+  originalName: Uz
+  ignore: false
+  instrument: null
+  unit: m/s
+  dtype: <f4
+  frequency: null
+  variableDescription: Smp
+Ts:
+  originalName: Ts
+  ignore: false
+  instrument: null
+  unit: C
+  dtype: <f4
+  frequency: null
+  variableDescription: Smp
+CO2:
+  originalName: CO2
+  ignore: false
+  instrument: null
+  unit: mmol/m^3
+  dtype: <f4
+  frequency: null
+  variableDescription: Smp
+H2O:
+  originalName: H2O
+  ignore: false
+  instrument: null
+  unit: mmol/m^3
+  dtype: <f4
+  frequency: null
+  variableDescription: Smp
+press:
+  originalName: press
+  ignore: false
+  instrument: null
+  unit: kPa
+  dtype: <f4
+  frequency: null
+  variableDescription: Smp
+LI7500_diag:
+  originalName: LI7500_diag
+  ignore: false
+  instrument: null
+  unit: arb
+  dtype: <f4
+  frequency: null
+  variableDescription: Smp
+LI7550_SignalStrength:
+  originalName: LI7550_SignalStrength
+  ignore: false
+  instrument: null
+  unit: ''
+  dtype: <f4
+  frequency: null
+  variableDescription: Smp
+Diagnostic_7700:
+  originalName: Diagnostic_7700
+  ignore: false
+  instrument: null
+  unit: arb
+  dtype: <f4
+  frequency: null
+  variableDescription: Smp
+CH4_density:
+  originalName: CH4_density
+  ignore: false
+  instrument: null
+  unit: mmol/m^3
+  dtype: <f4
+  frequency: null
+  variableDescription: Smp
+CH4_mole_fraction:
+  originalName: CH4_mole_fraction
+  ignore: false
+  instrument: null
+  unit: umol/mol
+  dtype: <f4
+  frequency: null
+  variableDescription: Smp
+Temperature:
+  originalName: Temperature
+  ignore: false
+  instrument: null
+  unit: C
+  dtype: <f4
+  frequency: null
+  variableDescription: Smp
+Pressure:
+  originalName: Pressure
+  ignore: false
+  instrument: null
+  unit: kPa
+  dtype: <f4
+  frequency: null
+  variableDescription: Smp
+RSSI:
+  originalName: RSSI
+  ignore: false
+  instrument: null
+  unit: '%'
+  dtype: <f4
+  frequency: null
+  variableDescription: Smp

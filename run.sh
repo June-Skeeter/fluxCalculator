@@ -12,14 +12,14 @@ if [ $# -gt 0 ]; then
         make fcc
         cp $rootdir$"/build/7z/7za" $rootdir$"/bin/"
     fi
-    # if [[ $1 = "run" || $2 = "run" ]]; then
-    #     echo "Running test script"
-    #     # cd $rootdir$"/eddypro-engine"
+    if [[ $1 = "run" || $2 = "run" ]]; then
+        echo "Running test script"
+        cd $rootdir$"/testing"
 
     #     # $rootdir$"/eddypro-engine/bin/linux/eddypro_rp" -s linux $rootdir$"/custom/BinTest_linux.eddypro"
 
     #     # $rootdir$"/eddypro-engine/bin/linux/eddypro_rp" -s linux $rootdir$"/custom/SCL_mod_mini.eddypro"
 
-    #     # $rootdir$"/eddypro-engine/bin/linux/eddypro_rp" -s linux $rootdir$"/custom/SCL_ecf32.eddypro"
-    # fi
+        $rootdir$"/bin/linux/eddypro_rp" -s linux $rootdir$"/testing/SCL_ecf32.eddypro"
+    fi
 fi
