@@ -4,8 +4,10 @@ This code is a "fork" of [EddypPro&reg;](https://github.com/LI-COR-Environmental
 
 The modifications made here include:
 
+* Added support for reading high frequency data binary
+  * Created the  "ecf32" file format, a custom format, which allows for faster reading of data and more efficient storage.
+  * A set of functions for creating ecf32 data from pandas dataframes and writing the associated metadata 
 * Correction of path length variables for Gill anemometers
-* Improved support for reading high frequency data binary files ".ecf32" files
 * Support for IRGASON as a default instrument
 * Scripts for building from compiling from source code
 * Bugfix in makefile for compiling on windows
