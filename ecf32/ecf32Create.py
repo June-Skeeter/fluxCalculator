@@ -38,10 +38,10 @@ class ecf32Write:
             fp = re.sub('mm',f"{i[1].month}",fp,flags=re.IGNORECASE)
             os.makedirs(fp,exist_ok=True)
             fn = i[1].strftime(self.fileNameTemplate)
-            fn = fn.replace('mxn.ecf32',f'{df.shape[0]}x{df.shape[1]}.float32')
+            fn = fn.replace('mxn.float32',f'{df.shape[0]}x{df.shape[1]}.float32')
             fn = os.path.join(fp,fn)
             df.astype('float32').values.tofile(fn)
-        self.dataframe.to_csv('testData/testData.csv')
+        # self.dataframe.to_csv('testData/testData.csv')
 
 def fieldBuilder(name,base):
     def getSec(base,name):
