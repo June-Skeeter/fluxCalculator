@@ -1,47 +1,94 @@
+from pandas.api.types import is_float_dtype,is_integer_dtype
 from dataclasses import dataclass, field, make_dataclass
 from configparser import ConfigParser
 from functools import partial
 import pandas as pd
 import numpy as np
 from datetime import datetime
+import json
 import os
 import re
 
 @dataclass(kw_only=True)
-class ecf32Write:
+class highFrequency:
     outputPath: str
     siteID: str
-    dataframe: pd.DataFrame
-    dataInterval: str = '1800s'
+    fileID: str
+    fileIntervalSeconds: str = 1800
+    dataFrequencyHz: str = 'auto'
     missingSampleAllowance: float = 0.1 # default pct from eddypro
-    fileNameTemplate: str = field(default='siteID_%Y%m%dT%H%M_mxn.float32',init=False)
+    typeEnforce: bool = False
+    duplicateEnforce: bool = False
+    # fileNameTemplate: str = field(default='siteID_%Y%m%dT%H%M_mxn.float32',init=False)
 
     def __post_init__(self):
-        self.fileNameTemplate = self.fileNameTemplate.replace('siteID',self.siteID)
+        if 'yyyymm' not in self.outputPath:
+            print(f'reformatting to {self.outputPath}/yyyymm')
+            self.outputPath = os.path.join(self.outputPath,'yyyymm')
+        self.fileNameTemplate = f"{self.siteID}_{self.fileID}_%Y%m%dT%H%M_mxn_freq.float32"
+        self.metadataNameTemplate = f"{self.siteID}_{self.fileID}_metadata_mxn_freq.json"
+
+    def loadDataFrame(self,dataframe):
+        if self.typeEnforce:
+            drop = [c for c,v in dataframe.dtypes.items() if str(v) != 'float32']
+            if len(drop):
+                print(f'Dropping non float32 columns: {drop}')
+                dataframe = dataframe.drop(columns=drop)
+        if dataframe.index.duplicated().sum():
+            exit('Duplicates detected')
+        if any([str(d)!='float32' for d in dataframe.dtypes]):
+            exit('Requires dataframes with only float32 data. Submit with dataframe.astype("float32")')
+        if self.dataFrequencyHz == 'auto':
+            self.dataFrequencyHz = 1/dataframe.index.diff().total_seconds().to_series().median()
+            if self.dataFrequencyHz < 1:
+                exit(f'Format not suited for Hz < 20, detected frequency was {self.dataFrequencyHz}')
+            else:
+                self.dataFrequencyHz = f"{int(self.dataFrequencyHz)}Hz"
+        if len(dataframe.columns.names)==1:
+            metadata = {col:{'variableName':col,'dataType':str(dataframe[col].dtype)} for col in dataframe.columns}
+        else:
+            metadata = {col[0]:{vn:col[i] for i,vn in enumerate(dataframe.columns.names)} for col in dataframe.columns}
+        
+
         ix = pd.date_range(
-            self.dataframe.index.min().floor(self.dataInterval),
-            self.dataframe.index.max().ceil(self.dataInterval),
-            freq=self.dataInterval)
+            dataframe.index.min().floor(f"{self.fileIntervalSeconds}s"),
+            dataframe.index.max().ceil(f"{self.fileIntervalSeconds}s"),
+            freq=f"{self.fileIntervalSeconds}s")
         ix = [ix[j:j+2] for j in range(len(ix)-1)]
+        fp = ''
         for i in ix:
-            df = self.dataframe.loc[(
-                (self.dataframe.index > i[0])
+            yyyymm = f"{i[1].year}{str(i[1].month).zfill(2)}"
+            if yyyymm not in fp:
+                fp = self.outputPath.replace('yyyymm',yyyymm)
+                os.makedirs(fp,exist_ok=True)
+                mdfp = os.path.join(fp,self.metadataNameTemplate.replace('_mxn_freq.',f"_mx{len(metadata)}_{self.dataFrequencyHz}."))
+                if not os.path.isfile(mdfp):
+                    with open(mdfp,'w+') as f:
+                        json.dump(metadata,f,indent=4)
+                else:
+                    with open(mdfp) as f:
+                        mdIn = json.load(f)
+                        if mdIn != metadata:
+                            exit(f'metadata of current submission does not match metadata of exiting files: \nExisting: \n\n{str(mdIn)}\n\n\n current:\n\n{str(metadata)}')
+
+            df = dataframe.loc[(
+                (dataframe.index > i[0])
                 &
-                (self.dataframe.index <= i[1])
+                (dataframe.index <= i[1])
                 )]
-            if len(df) > pd.to_timedelta(self.dataInterval).total_seconds()/df.index.diff().mean().total_seconds():
+            if df.empty:
+                continue
+            elif len(df) > int(pd.to_timedelta(f"{self.fileIntervalSeconds}s").total_seconds()/df.index.diff().mean().total_seconds()):
                 exit('Too man samples, unexpected error')
-            elif len(df) < pd.to_timedelta(self.dataInterval).total_seconds()/df.index.diff().mean().total_seconds()*(1-self.missingSampleAllowance):
+            elif len(df) < pd.to_timedelta(f"{self.fileIntervalSeconds}s").total_seconds()/df.index.diff().mean().total_seconds()*(1-self.missingSampleAllowance):
                 print(f'Insufficient samples for timestep {i[0]}:{i[1]}')
                 continue
-            fp = re.sub('yyyy',f"{i[1].year}",self.outputPath,flags=re.IGNORECASE)
-            fp = re.sub('mm',f"{i[1].month}",fp,flags=re.IGNORECASE)
             os.makedirs(fp,exist_ok=True)
             fn = i[1].strftime(self.fileNameTemplate)
-            fn = fn.replace('mxn.float32',f'{df.shape[0]}x{df.shape[1]}.float32')
+            fn = fn.replace('mxn_freq.float32',f'{df.shape[0]}x{df.shape[1]}_{self.dataFrequencyHz}.float32')
             fn = os.path.join(fp,fn)
-            df.astype('float32').values.tofile(fn)
-        # self.dataframe.to_csv('testData/testData.csv')
+            print(f"Writing: {fn}")
+            df.values.tofile(fn)
 
 def fieldBuilder(name,base):
     def getSec(base,name):
