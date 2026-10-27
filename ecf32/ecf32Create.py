@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 import json
+import uuid
 # import yaml
 import os
 import re
@@ -103,20 +104,30 @@ class ghgMetadataWriter(ghgTemplate):
         self.Site['site_name'] = site_name
         self.Site['latitude'] = latitude
         self.Site['longitude'] = longitude
-        self.Site['altitude'] = longitude
+        self.Site['altitude'] = altitude
         self.Site['canopy_height'] = canopy_height
 
     def setDates(self,start_date,stop_date):
         self.Project['start_date'] = start_date
         self.Project['end_date'] = stop_date
 
-    def setInstrument(self,ix,manufacturer,model,id,height='',north_offset='',northward_separation='',eastward_separation='',vertical_separation='',tube_length='',tube_diameter=''):
+    def setInstrument(self,ix,manufacturer,model,id,height='',north_offset='',vpath_length='',hpath_length='',northward_separation='',eastward_separation='',vertical_separation='',tube_length='',tube_diameter=''):
+        if model == 'irgason':
+            if ix == 1:
+                manufacturer = 'other_sonic'
+                model = 'generic_sonic'
+            else:
+                manufacturer = 'other_irga'
+                model = 'generic_open_path_1'
         self.Instruments[f"instr_{ix}_manufacturer"] = manufacturer
         self.Instruments[f"instr_{ix}_model"] = model
         self.Instruments[f"instr_{ix}_id"] = id
         if ix == 1 and height and north_offset:
             self.Instruments[f"instr_{ix}_height"] = str(height)
             self.Instruments[f"instr_{ix}_north_offset"] = str(north_offset)
+            if vpath_length and hpath_length:
+                self.Instruments[f'instr_{ix}_vpath_length'] = vpath_length
+                self.Instruments[f'instr_{ix}_hpath_length'] = hpath_length
         elif ix > 1:
             self.Instruments[f"instr_{ix}_northward_separation"]=str(northward_separation)
             self.Instruments[f"instr_{ix}_eastward_separation"]=str(eastward_separation)
@@ -128,25 +139,26 @@ class ghgMetadataWriter(ghgTemplate):
                 self.Instruments[f"instr_{ix}_tube_flowrate"]='0.00'
 
     def setFileDescription(self,metadata):
+        cols = {c:v for c,v in self.FileDescription.items() if c.startswith('col_n')}
+        for c in cols.keys():
+            self.FileDescription.pop(c)
         
-        # self.instrumentList = [self.Instruments[f'instr_{i+1}_id'] for i,_ in enumerate([k for k in self.Instruments.keys() if k.endswith('_id')])]
-    #     self.getInstrumentList()
-    #     col_n = [k for k in self.FileDescription.keys() if k.startswith('col_1')]
-    #     columns = {k.replace('_1_','_n_'):self.FileDescription.pop(k) for k in col_n}
-    #     # To prevent duplication, get variable translation, then select preffered opton
         selectedVariables = self.variableSelection(metadata)
-        self.variableColumns = {}
         for ix,values in enumerate(metadata.values()):
             i = ix + 1
+            for c,v in cols.items():
+                self.FileDescription[c.replace('_n_',f'_{i}_')] = v
             if values['variableName'] not in selectedVariables:
                 self.FileDescription[f'col_{i}_variable'] = 'ignore'
             else:
                 variable = selectedVariables[values['variableName']]
                 self.FileDescription[f'col_{i}_variable'] = variable
-                self.variableColumns[variable] = i
-                self.FileDescription[f"col_{i}_instrument"] = values['ID']
+                self.FileDescription[f"col_{i}_instrument"] = values['instrumentID']
                 self.FileDescription[f"col_{i}_unit_in"] = values['units']
-                self.FileDescription[f"col_{i}_measure_type"] = 'None'
+                if variable in ['h2o','co2','ch4','n2o']:
+                    self.FileDescription[f"col_{i}_measure_type"] = self.translate('measure_type',values['units'])
+                    if self.FileDescription[f"col_{i}_measure_type"] is None:
+                        exit(f'Could not determin measure_type for {values['variableName']}: {values['units']}')
 
     def variableSelection(self,traces):
         # map all variables onto preferred vairables (first in list from ghgTranslator *if any present*)
@@ -161,31 +173,23 @@ class ghgMetadataWriter(ghgTemplate):
         return(variables)
 
     def translate(self,key,value):
-        if key in ['measurementType']:
-            for key,v in ghgTranslator[key].items():
-                if value in v or value == v:
-                    return(key)
-            return('')
-        elif key == 'instrument':
-            for instrument in self.instrumentList:
-                if instrument.rsplit('_')[0] not in ghgTranslator['instrument'].keys():
-                    self.logMessage(f'Add variables for {instrument.rsplit("_")[0]}')
-                elif value in ghgTranslator['instrument'][instrument.rsplit("_")[0]]:
-                    return(instrument)
-            self.logMessage(f'Could not par instrument for {value}')
-            return('')
+        for key,v in ghgTranslator[key].items():
+            if value in v or value == v:
+                return(key)
+        return 
 
-    # def writeFiles(self,filepath):
-    #     self.Project['file_name'] = filepath
-    #     ghgMetadataFile = ConfigParser()
-    #     for key in ghgMetadata.__annotations__:
-    #         if key == 'DEFAULT':
-    #             continue
-    #         ghgMetadataFile.add_section(key)
-    #         ghgMetadataFile[key] = getattr(self,key)
-    #     with open(self.Project['file_name'],'w+') as fout:
-    #         fout.write(';GHG_METADATA\n')
-    #         ghgMetadataFile.write(fout)
+    def writeFiles(self,filepath):
+        self.Project['file_name'] = filepath
+        ghgMetadataFile = ConfigParser()
+        for key in ghgTemplate.__annotations__:
+            if key == 'DEFAULT':
+                continue
+            ghgMetadataFile.add_section(key)
+            ghgMetadataFile[key] = getattr(self,key)
+        with open(self.Project['file_name'],'w+') as fout:
+            fout.write(';GHG_METADATA\n')
+            ghgMetadataFile.write(fout, space_around_delimiters=False)
+
     def asDictionary(self,flat=False):
         if flat:
             # for dataframes
@@ -201,7 +205,6 @@ class highFrequency(ghgMetadataWriter):
     outputPath: str
     siteID: str
     fileID: str
-    timezone: str = 'UTC'
     dataIntervalSeconds: str = 1800
     dataFrequencyHz: str = 'auto'
     missingSampleAllowance: float = 0.1 # default pct from eddypro
@@ -224,7 +227,7 @@ class highFrequency(ghgMetadataWriter):
             exit('Duplicates detected')
         if any([str(d)!='float32' for d in dataframe.dtypes]):
             exit('Requires dataframes with only float32 data. Submit with dataframe.astype("float32")')
-        dataframe.index = dataframe.index.tz_localize(self.timezone)
+        # dataframe.index = dataframe.index.tz_localize(self.timezone)
         if self.dataFrequencyHz == 'auto':
             self.dataFrequencyHz = 1/dataframe.index.diff().total_seconds().to_series().median()
             if self.dataFrequencyHz < 1:
@@ -253,7 +256,6 @@ class highFrequency(ghgMetadataWriter):
                 (dataframe.index <= i[1])
                 )]
             if df.empty:
-                names.append(None)
                 continue
             elif len(df) > int(pd.to_timedelta(f"{self.dataIntervalSeconds}s").total_seconds()/df.index.diff().mean().total_seconds()):
                 print('Too man samples, unexpected error')
@@ -261,7 +263,6 @@ class highFrequency(ghgMetadataWriter):
                 exit()
             elif len(df) < pd.to_timedelta(f"{self.dataIntervalSeconds}s").total_seconds()/df.index.diff().mean().total_seconds()*(1-self.missingSampleAllowance):
                 print(f'Insufficient samples for timestep {i[0]}:{i[1]}')
-                names.append(None)
                 continue
             os.makedirs(fp,exist_ok=True)
             fn = i[1].strftime(self.fileNameTemplate)
@@ -274,6 +275,9 @@ class highFrequency(ghgMetadataWriter):
             with open(mdfn,'w+') as f:
                 json.dump(metadata,f,indent=4)
         self.setFileDescription(metadata)
-        breakpoint()
-        desc = {('FileDescription',key): value for key,value in self.asDictionary()['FileDescription'].items()}|{('Project','file_name'):fn for fn in names}
-        return(pd.DataFrame(desc,index=[ix[0][0]]))
+        if len(names):
+            hash = uuid.uuid5(uuid.NAMESPACE_DNS,str(self.asDictionary()))
+            for name in names:
+                self.writeFiles(name.replace('.float32',f'{hash}.metadata'))
+            breakpoint()
+        # return(pd.DataFrame(index=[i[0] for i in ix],data={('Project','file_name'):names}|{('FileDescription',key): [value for n in names] for key,value in self.asDictionary()['FileDescription'].items()}))
