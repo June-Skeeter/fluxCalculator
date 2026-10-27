@@ -256,7 +256,9 @@ class highFrequency(ghgMetadataWriter):
                 names.append(None)
                 continue
             elif len(df) > int(pd.to_timedelta(f"{self.dataIntervalSeconds}s").total_seconds()/df.index.diff().mean().total_seconds()):
-                exit('Too man samples, unexpected error')
+                print('Too man samples, unexpected error')
+                breakpoint()
+                exit()
             elif len(df) < pd.to_timedelta(f"{self.dataIntervalSeconds}s").total_seconds()/df.index.diff().mean().total_seconds()*(1-self.missingSampleAllowance):
                 print(f'Insufficient samples for timestep {i[0]}:{i[1]}')
                 names.append(None)
