@@ -94,7 +94,7 @@ subroutine RetrieveSensorParams()
             E2Col(u:ts)%Instr%vpath_length = 0.131d0    !< to be verified
             E2Col(u:ts)%Instr%hpath_length = 0.099d0    !< to be verified
             E2Col(u:ts)%Instr%tau = 1d0 / 50d0
-        case('csat3', 'csat3b', 'irgason')
+        case('csat3', 'csat3b')
             E2Col(u:ts)%Instr%vpath_length = 0.115d0
             E2Col(u:ts)%Instr%hpath_length = 0.0064d0 !< Not 0.58d0
             E2Col(u:ts)%Instr%tau = 1d0 / 60d0
@@ -107,7 +107,7 @@ subroutine RetrieveSensorParams()
     do gas = co2, gas4
         if(E2Col(gas)%present) then
             select case (E2Col(gas)%Instr%model(1:len_trim(E2Col(gas)%Instr%model) - 2))
-                case('irgason')
+                case('ec150')
                     E2Col(gas)%Instr%vpath_length = 0.1537   
                     E2Col(gas)%Instr%hpath_length = 0.01 !< confirm
                     E2Col(gas)%Instr%tau = 1d0 / 60d0

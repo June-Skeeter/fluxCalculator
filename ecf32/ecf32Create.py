@@ -40,22 +40,24 @@ def fromIniDefault(filePath,bases=(),asDataclass=True,namespace=None):
         kw_only=True
     )
     return dc
-eddyproTemplate = fromIniDefault(os.path.join(os.path.split(__file__)[0],'templates','eddyproTemplate.eddypro'))
-ghgTemplate = fromIniDefault(os.path.join(os.path.split(__file__)[0],'templates','ghgTemplate.metadata'))
+root = os.path.split(os.path.split(__file__)[0])[0]
+eddyproTemplate = fromIniDefault(os.path.join(root,'templates','template.eddypro'))
+ghgTemplate = fromIniDefault(os.path.join(root,'templates','template.metadata'))
 
-with open(os.path.join(os.path.split(__file__)[0],'templates','ghgTranslations.json')) as f:
-    ghgTranslator = json.load(f)#yaml.safe_load(f)
-
-
-
-@dataclass(kw_only=True)
 class ecf32ProjectWriter(eddyproTemplate):
 
-    def __post_init__(self):
-        self.Project['file+type'] = 7
+    def newFile(self):
+        self.Project['file_type'] = '7'
         self.Project['creation_date'] = datetime.now().isoformat()
         self.Project['last_change_date'] = self.Project['creation_date']
 
+        self.Project['binary_hnlines']='0'
+        self.Project['binary_eol']='0'
+        self.Project['binary_nbytes']='4'
+        self.Project['binary_little_end']='1'
+        self.Project['use_biom']='0'
+        print('Warning: Turn use_biom on')
+        # breakpoint()
 #     def setDates(self,dateStart,dateStop):
 #         dateStart=datetime.fromisoformat(dateStart)
 #         if dateStop is None: dateStop = datetime.now()
@@ -80,26 +82,45 @@ class ecf32ProjectWriter(eddyproTemplate):
 #                     self.Project[key] = ghgMetadataFile.variableColumns[col]
 #         self.Project['file_name'] = ghgMetadataFile.Project['file_name'].replace('.metadata','.eddypro')
 #         self.writeFile()
+    def selectColumns(self,Instruments,FileDescription):
+        self.Project['master_sonic'] = Instruments['instr_1_model']
+        cols = {k:'' for k in self.Project.keys() if k.startswith('col')}
+        vars = {k:v for k,v in FileDescription.items() if k.endswith('variable')}
+        for col in cols.keys():
+            if col.split('_',1)[-1] in vars.values():
+                for key,value in vars.items():
+                    if value == col.split('_',1)[-1]:
+                        self.Project[col] = key.split('_')[1]
+                        continue
 
-#     def writeFile(self):
-#         # self.fill(ghgMetadataFile)
-#         epOut = ConfigParser()
-#         for key in eddyproTemplate.__annotations__:
-#             if key == 'DEFAULT':
-#                 continue
-#             epOut.add_section(key)
-#             epOut[key] = getattr(self,key)
-#         with open(self.Project['file_name'],'w+') as fout:
-#             fout.write(';EDDYPRO_PROCESSING\n')
-#             epOut.write(fout)
+    def writeFile(self,filepath):
+        self.Project['use_pfile'] = '1'
+        self.Project['proj_file'] = filepath
+        self.RawProcess_General['data_path'] = os.path.split(filepath)[0]
+        filepath = filepath.replace('.metadata','.eddypro')
+        self.Project['file_name'] = filepath
+        self.Project['out_path'] = os.path.join(os.path.split(filepath)[0],'eddypro_out_test')
+        # self.Project['file_prototype'] = os.path.split(filepath)[1].replace('.eddypro','_yyyymmddTHHMM.float32')
+
+        epOut = ConfigParser()
+        for key in eddyproTemplate.__annotations__:
+            if key == 'DEFAULT':
+                continue
+            epOut.add_section(key)
+            epOut[key] = getattr(self,key)
+        with open(self.Project['file_name'],'w+') as fout:
+            fout.write(';EDDYPRO_PROCESSING\n')
+            epOut.write(fout, space_around_delimiters=False)
 
 
 # Metadata format of LICOR .ghg files
 class ghgMetadataWriter(ghgTemplate):
     
-    def newFile(self,site_id,latitude,longitude,altitude='',canopy_height='',site_name=''):
+    def newFile(self,site_id,latitude,longitude,altitude='',canopy_height='',site_name='',start_date='',stop_date=''):
         self.Project['creation_date'] = datetime.now().isoformat()
         self.Project['last_change_date'] = self.Project['creation_date']
+        self.Project['start_date'] = start_date
+        self.Project['end_date'] = stop_date
         self.Site['site_id'] = site_id
         self.Site['site_name'] = site_name
         self.Site['latitude'] = latitude
@@ -107,78 +128,8 @@ class ghgMetadataWriter(ghgTemplate):
         self.Site['altitude'] = altitude
         self.Site['canopy_height'] = canopy_height
 
-    def setDates(self,start_date,stop_date):
-        self.Project['start_date'] = start_date
-        self.Project['end_date'] = stop_date
-
-    def setInstrument(self,ix,manufacturer,model,id,height='',north_offset='',vpath_length='',hpath_length='',northward_separation='',eastward_separation='',vertical_separation='',tube_length='',tube_diameter=''):
-        if model == 'irgason':
-            if ix == 1:
-                manufacturer = 'other_sonic'
-                model = 'generic_sonic'
-            else:
-                manufacturer = 'other_irga'
-                model = 'generic_open_path_1'
-        self.Instruments[f"instr_{ix}_manufacturer"] = manufacturer
-        self.Instruments[f"instr_{ix}_model"] = model
-        self.Instruments[f"instr_{ix}_id"] = id
-        if ix == 1 and height and north_offset:
-            self.Instruments[f"instr_{ix}_height"] = str(height)
-            self.Instruments[f"instr_{ix}_north_offset"] = str(north_offset)
-            if vpath_length and hpath_length:
-                self.Instruments[f'instr_{ix}_vpath_length'] = vpath_length
-                self.Instruments[f'instr_{ix}_hpath_length'] = hpath_length
-        elif ix > 1:
-            self.Instruments[f"instr_{ix}_northward_separation"]=str(northward_separation)
-            self.Instruments[f"instr_{ix}_eastward_separation"]=str(eastward_separation)
-            self.Instruments[f"instr_{ix}_vertical_separation"]=str(vertical_separation)
-            if tube_length != '':
-                self.Instruments[f"instr_{ix}_tube_length"]=tube_length
-                self.Instruments[f"instr_{ix}_tube_diameter"]=tube_diameter
-                # Set to 0, overwritten with data from the file anyway
-                self.Instruments[f"instr_{ix}_tube_flowrate"]='0.00'
-
-    def setFileDescription(self,metadata):
-        cols = {c:v for c,v in self.FileDescription.items() if c.startswith('col_n')}
-        for c in cols.keys():
-            self.FileDescription.pop(c)
-        
-        selectedVariables = self.variableSelection(metadata)
-        for ix,values in enumerate(metadata.values()):
-            i = ix + 1
-            for c,v in cols.items():
-                self.FileDescription[c.replace('_n_',f'_{i}_')] = v
-            if values['variableName'] not in selectedVariables:
-                self.FileDescription[f'col_{i}_variable'] = 'ignore'
-            else:
-                variable = selectedVariables[values['variableName']]
-                self.FileDescription[f'col_{i}_variable'] = variable
-                self.FileDescription[f"col_{i}_instrument"] = values['instrumentID']
-                self.FileDescription[f"col_{i}_unit_in"] = values['units']
-                if variable in ['h2o','co2','ch4','n2o']:
-                    self.FileDescription[f"col_{i}_measure_type"] = self.translate('measure_type',values['units'])
-                    if self.FileDescription[f"col_{i}_measure_type"] is None:
-                        exit(f'Could not determin measure_type for {values['variableName']}: {values['units']}')
-
-    def variableSelection(self,traces):
-        # map all variables onto preferred vairables (first in list from ghgTranslator *if any present*)
-        vnList = [values['variableName'] for values in traces.values()]
-        variables = {
-            names[0]:var for var,names in {
-                var:[name for name in names if name in vnList]
-                for var,names in ghgTranslator['variable'].items()
-                }.items() 
-            if len(names)
-            }
-        return(variables)
-
-    def translate(self,key,value):
-        for key,v in ghgTranslator[key].items():
-            if value in v or value == v:
-                return(key)
-        return 
-
     def writeFiles(self,filepath):
+        filepath = os.path.abspath(filepath)
         self.Project['file_name'] = filepath
         ghgMetadataFile = ConfigParser()
         for key in ghgTemplate.__annotations__:
@@ -189,11 +140,14 @@ class ghgMetadataWriter(ghgTemplate):
         with open(self.Project['file_name'],'w+') as fout:
             fout.write(';GHG_METADATA\n')
             ghgMetadataFile.write(fout, space_around_delimiters=False)
+        EP = ecf32ProjectWriter()
+        EP.newFile()
+        EP.selectColumns(self.Instruments,self.FileDescription)
+        EP.writeFile(filepath)
 
     def asDictionary(self,flat=False):
         if flat:
-            # for dataframes
-            return({(key,subKey):value for key,values in self.__dict__.items() for subKey,value in values.items() if key in ghgTemplate.__annotations__})
+            return({(key,subKey):value for key,values in self.__dict__.items() if key in ghgTemplate.__annotations__ for subKey,value in values.items()})
         else:
             # for yaml, etc.
             return({key:value for key,value in self.__dict__.items() if key in ghgTemplate.__annotations__})
@@ -203,37 +157,29 @@ class ghgMetadataWriter(ghgTemplate):
 @dataclass(kw_only=True)
 class highFrequency(ghgMetadataWriter):
     outputPath: str
-    siteID: str
-    fileID: str
     dataIntervalSeconds: str = 1800
-    dataFrequencyHz: str = 'auto'
     missingSampleAllowance: float = 0.1 # default pct from eddypro
-    typeEnforce: bool = False
-    duplicateEnforce: bool = False
+    fileNameTemplate: str = "%Y%m%dT%H%M.float32"
 
-    def __post_init__(self):
-        if 'yyyymm' not in self.outputPath:
-            print(f'reformatting to {self.outputPath}/yyyymm')
-            self.outputPath = os.path.join(self.outputPath,'yyyymm')
-        self.fileNameTemplate = f"{self.siteID}_{self.fileID}_%Y%m%dT%H%M_mxn_freq.float32"
+    # def __post_init__(self):
+    #     # if 'yyyymm' not in self.outputPath:
+    #     #     print(f'reformatting to {self.outputPath}/yyyymm')
+    #     self.outputPath = os.path.join(self.outputPath,'~HASH~','yyyymm')
 
     def loadDataFrame(self,dataframe):
-        if self.typeEnforce:
-            drop = [c for c,v in dataframe.dtypes.items() if str(v) != 'float32']
-            if len(drop):
-                print(f'Dropping non float32 columns: {drop}')
-                dataframe = dataframe.drop(columns=drop)
+        flag = [c for c,v in dataframe.dtypes.items() if str(v) != 'float32']
+        if len(flag):
+            exit(f"Columns are not in float32 format: {flag}")
         if dataframe.index.duplicated().sum():
             exit('Duplicates detected')
-        if any([str(d)!='float32' for d in dataframe.dtypes]):
-            exit('Requires dataframes with only float32 data. Submit with dataframe.astype("float32")')
-        # dataframe.index = dataframe.index.tz_localize(self.timezone)
-        if self.dataFrequencyHz == 'auto':
-            self.dataFrequencyHz = 1/dataframe.index.diff().total_seconds().to_series().median()
-            if self.dataFrequencyHz < 1:
-                exit(f'Format not suited for Hz < 20, detected frequency was {self.dataFrequencyHz}')
-            else:
-                self.dataFrequencyHz = f"{int(self.dataFrequencyHz)}Hz"
+        dataFrequencyHz = 1/dataframe.index.diff().total_seconds().to_series().median()
+        if dataFrequencyHz < 1:
+            exit(f'Format not suited for Hz < 20, detected frequency was {dataFrequencyHz}')
+        self.Timing['acquisition_frequency'] = dataFrequencyHz
+        self.Timing['file_duration'] = int(self.dataIntervalSeconds/60)
+        print('Warning: serialize with json to ensure consitencey')
+        hash = str(uuid.uuid5(uuid.NAMESPACE_DNS,str(self.asDictionary())))
+        dataFrequencyHz = f"{int(dataFrequencyHz)}Hz"
         if len(dataframe.columns.names)==1:
             metadata = {col:{'variableName':col,'dataType':str(dataframe[col].dtype)} for col in dataframe.columns}
         else:
@@ -248,7 +194,7 @@ class highFrequency(ghgMetadataWriter):
         for i in ix:
             yyyymm = f"{i[1].year}{str(i[1].month).zfill(2)}"
             if yyyymm not in fp:
-                fp = self.outputPath.replace('yyyymm',yyyymm)
+                fp = os.path.join(self.outputPath,hash,yyyymm)
                 os.makedirs(fp,exist_ok=True)
             df = dataframe.loc[(
                 (dataframe.index > i[0])
@@ -257,27 +203,24 @@ class highFrequency(ghgMetadataWriter):
                 )]
             if df.empty:
                 continue
-            elif len(df) > int(pd.to_timedelta(f"{self.dataIntervalSeconds}s").total_seconds()/df.index.diff().mean().total_seconds()):
+            elif len(df) > int(pd.to_timedelta(f"{self.dataIntervalSeconds}s").total_seconds()/df.index.diff().median().total_seconds()):
                 print('Too man samples, unexpected error')
                 breakpoint()
                 exit()
-            elif len(df) < pd.to_timedelta(f"{self.dataIntervalSeconds}s").total_seconds()/df.index.diff().mean().total_seconds()*(1-self.missingSampleAllowance):
+            elif len(df) < pd.to_timedelta(f"{self.dataIntervalSeconds}s").total_seconds()/df.index.diff().median().total_seconds()*(1-self.missingSampleAllowance):
                 print(f'Insufficient samples for timestep {i[0]}:{i[1]}')
                 continue
             os.makedirs(fp,exist_ok=True)
-            fn = i[1].strftime(self.fileNameTemplate)
-            fn = fn.replace('mxn_freq.float32',f'{df.shape[0]}x{df.shape[1]}_{self.dataFrequencyHz}.float32')
+            fn = i[1].strftime(self.fileNameTemplate)#.replace('UUID',hash))
             fn = os.path.join(fp,fn)
             names.append(fn)
             print(f"Writing: {fn}")
             df.values.tofile(fn)
             mdfn = fn.replace('.float32','.json')
+            metadata = {'.shape':df.shape,'.frequency':dataFrequencyHz,'start_time':df.index[0].isoformat()}|metadata
             with open(mdfn,'w+') as f:
                 json.dump(metadata,f,indent=4)
-        self.setFileDescription(metadata)
         if len(names):
-            hash = uuid.uuid5(uuid.NAMESPACE_DNS,str(self.asDictionary()))
-            for name in names:
-                self.writeFiles(name.replace('.float32',f'{hash}.metadata'))
-            breakpoint()
-        # return(pd.DataFrame(index=[i[0] for i in ix],data={('Project','file_name'):names}|{('FileDescription',key): [value for n in names] for key,value in self.asDictionary()['FileDescription'].items()}))
+            return(hash)
+        else:
+            return(False)

@@ -8,7 +8,7 @@ The modifications made here include:
   * Created the  "ecf32" file format, a custom format, which allows for faster reading of data and more efficient storage.
   * A set of functions for creating ecf32 data from pandas dataframes and writing the associated metadata 
 * Correction of path length variables for Gill anemometers
-* Support for IRGASON as a default instrument
+* Support for ec150 as a default instrument
 * Scripts for building from compiling from source code
 * Bugfix in makefile for compiling on windows
 
@@ -60,9 +60,11 @@ Call via command line:
 
 * Linux
 
-`bin\linux\eddypro_rp path\to\file.eddypro`
+`bin/linux/eddypro_rp path/to/file.eddypro`
 
 
-* Linux
+* Windows
 
-`bin\win\eddypro_rp path\to\file.eddypro`
+`bin\win\eddypro_rp.exe path\to\file.eddypro`
+
+<!-- .\scripts\submodules\fluxCalculator\bin\win\eddypro_fcc.exe .\testing\testProject\highFrequency\SCL\ffdfdb7e-a11c-5637-aad5-412f1316ab49.eddypro -->
