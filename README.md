@@ -62,9 +62,10 @@ Call via command line:
 
 `bin/linux/eddypro_rp path/to/file.eddypro`
 
+<!-- ../bin/linux/eddypro_rp -s linux /home/jskeeter/gsc-permafrost/fluxDataPipeline/testing/testProject/highFrequency/SCL/21e6f79e-1636-53fa-8323-4c643cae00e8/Flux_Data_v2.eddypro  -->
 
 * Windows
 
 `bin\win\eddypro_rp.exe path\to\file.eddypro`
 
-<!-- .\scripts\submodules\fluxCalculator\bin\win\eddypro_fcc.exe .\testing\testProject\highFrequency\SCL\ffdfdb7e-a11c-5637-aad5-412f1316ab49.eddypro -->
+<!-- .\scripts\submodules\fluxCalculator\bin\win\eddypro_fcc.exe -s windows .\testing\testProject\highFrequency\SCL\ffdfdb7e-a11c-5637-aad5-412f1316ab49.eddypro -->

@@ -84,7 +84,8 @@ class ecf32ProjectWriter(eddyproTemplate):
 #         self.writeFile()
     def selectColumns(self,Instruments,FileDescription):
         self.Project['master_sonic'] = Instruments['instr_1_model']
-        cols = {k:'' for k in self.Project.keys() if k.startswith('col')}
+        print('Exclude col_ts, forces to use sonic temp?')
+        cols = {k:'' for k in self.Project.keys() if k.startswith('col') and k!='col_ts'}
         vars = {k:v for k,v in FileDescription.items() if k.endswith('variable')}
         for col in cols.keys():
             if col.split('_',1)[-1] in vars.values():
@@ -160,13 +161,8 @@ class highFrequency(ghgMetadataWriter):
     dataIntervalSeconds: str = 1800
     missingSampleAllowance: float = 0.1 # default pct from eddypro
     fileNameTemplate: str = "%Y%m%dT%H%M.float32"
-
-    # def __post_init__(self):
-    #     # if 'yyyymm' not in self.outputPath:
-    #     #     print(f'reformatting to {self.outputPath}/yyyymm')
-    #     self.outputPath = os.path.join(self.outputPath,'~HASH~','yyyymm')
-
     def loadDataFrame(self,dataframe):
+        expectedShape = int(pd.to_timedelta(f"{self.dataIntervalSeconds}s").total_seconds()/dataframe.index.diff().median().total_seconds())
         flag = [c for c,v in dataframe.dtypes.items() if str(v) != 'float32']
         if len(flag):
             exit(f"Columns are not in float32 format: {flag}")
@@ -203,23 +199,33 @@ class highFrequency(ghgMetadataWriter):
                 )]
             if df.empty:
                 continue
-            elif len(df) > int(pd.to_timedelta(f"{self.dataIntervalSeconds}s").total_seconds()/df.index.diff().median().total_seconds()):
-                print('Too man samples, unexpected error')
-                breakpoint()
-                exit()
-            elif len(df) < pd.to_timedelta(f"{self.dataIntervalSeconds}s").total_seconds()/df.index.diff().median().total_seconds()*(1-self.missingSampleAllowance):
-                print(f'Insufficient samples for timestep {i[0]}:{i[1]}')
-                continue
+            elif len(df) > expectedShape:
+                # breakpoint()
+                exit('Too man samples, unexpected error')
+            elif len(df) < expectedShape:
+                if len(df) < expectedShape * (1-self.missingSampleAllowance):
+                    print(f'Insufficient samples for timestep {i[0]}:{i[1]}')
+                    continue
+                else:
+                    # If short, but within tolerance, pad with NaN to expected shape
+                    short = expectedShape - df.shape[0]
+                    print(f'Short by {short} samples for timestep {i[0]}:{i[1]}, padding with NaN')
+                    pad = np.empty((short)*df.shape[1])*np.nan
+                    dataOut = np.concatenate((df.values.T.flatten(),pad))
+            else:
+                dataOut = df.values.T.flatten()
             os.makedirs(fp,exist_ok=True)
             fn = i[1].strftime(self.fileNameTemplate)#.replace('UUID',hash))
             fn = os.path.join(fp,fn)
             names.append(fn)
             print(f"Writing: {fn}")
-            df.values.tofile(fn)
+            print(df.shape)
+            # Transpose to fortran order and flatten to 1D
+            dataOut.tofile(fn)
             mdfn = fn.replace('.float32','.json')
-            metadata = {'.shape':df.shape,'.frequency':dataFrequencyHz,'start_time':df.index[0].isoformat()}|metadata
+            mdout = {'.shape':df.shape,'.frequency':dataFrequencyHz,'start_time':df.index[0].isoformat()}|metadata
             with open(mdfn,'w+') as f:
-                json.dump(metadata,f,indent=4)
+                json.dump(mdout,f,indent=4)
         if len(names):
             return(hash)
         else:

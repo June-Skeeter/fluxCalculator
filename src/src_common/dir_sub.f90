@@ -230,7 +230,6 @@ subroutine NumberOfFilesInDir(DirIn, ext, MatchTemplate, Template, N, rN)
                 // trim(adjustl(TmpDir)) // 'flist.tmp" ' // comm_err_redirect
     end select
     dir_status = system(comm)
-
     !> Exit with error if dir command failed
     if (dir_status /= 0) call ExceptionHandler(86)
 

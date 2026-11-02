@@ -158,6 +158,7 @@ subroutine MetadataFileValidation(LocCol, passed, faulty_col)
     !> instance of each.
     present = 0
     do i= 1, NumCol
+        print *, LocCol(i)%var, LocCol(i)%useit
         if (LocCol(i)%var == 'u' .and. LocCol(i)%useit) &
             present(u) = present(u) + 1
         if (LocCol(i)%var == 'v' .and. LocCol(i)%useit) &
