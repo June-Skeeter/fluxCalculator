@@ -118,8 +118,6 @@ class ecf32ProjectWriter(eddyproTemplate):
 class ghgMetadataWriter(ghgTemplate):
     
     def newFile(self,site_id,latitude,longitude,altitude='',canopy_height='',site_name='',start_date='',stop_date=''):
-        self.Project['creation_date'] = datetime.now().isoformat()
-        self.Project['last_change_date'] = self.Project['creation_date']
         self.Project['start_date'] = start_date
         self.Project['end_date'] = stop_date
         self.Site['site_id'] = site_id
@@ -132,6 +130,8 @@ class ghgMetadataWriter(ghgTemplate):
     def writeFiles(self,filepath):
         filepath = os.path.abspath(filepath)
         self.Project['file_name'] = filepath
+        self.Project['creation_date'] = datetime.now().isoformat()
+        self.Project['last_change_date'] = self.Project['creation_date']
         ghgMetadataFile = ConfigParser()
         for key in ghgTemplate.__annotations__:
             if key == 'DEFAULT':
@@ -152,8 +152,6 @@ class ghgMetadataWriter(ghgTemplate):
         else:
             # for yaml, etc.
             return({key:value for key,value in self.__dict__.items() if key in ghgTemplate.__annotations__})
-
-
 
 @dataclass(kw_only=True)
 class highFrequency(ghgMetadataWriter):
