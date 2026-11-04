@@ -46,7 +46,7 @@ ghgTemplate = fromIniDefault(os.path.join(root,'templates','template.metadata'))
 
 class ecf32ProjectWriter(eddyproTemplate):
 
-    def newFile(self):
+    def newFile(self,start_date,end_date):
         self.Project['file_type'] = '7'
         self.Project['creation_date'] = datetime.now().isoformat()
         self.Project['last_change_date'] = self.Project['creation_date']
@@ -57,31 +57,29 @@ class ecf32ProjectWriter(eddyproTemplate):
         self.Project['binary_little_end']='1'
         self.Project['use_biom']='0'
         print('Warning: Turn use_biom on')
-        # breakpoint()
-#     def setDates(self,dateStart,dateStop):
-#         dateStart=datetime.fromisoformat(dateStart)
-#         if dateStop is None: dateStop = datetime.now()
-#         else: dateStop=datetime.fromisoformat(dateStop)
-#         for key,value in eddyproTemplate().__dict__.items():
-#             for dval in [k.split('start_date')[0] for k in value if 'start_date' in k]:
-#                 value[f"{dval}start_date"] = dateStart.strftime('%Y-%m-%d')
-#                 value[f"{dval}start_time"] = dateStart.strftime('%H:%M')
-#                 value[f"{dval}end_date"] = dateStop.strftime('%Y-%m-%d')
-#                 value[f"{dval}end_time"] = dateStop.strftime('%H:%M')
-#             setattr(self,key,value)
+        # Set times to that of metadata file
+        self.Project['pr_start_date'] = start_date.split('T')[0]
+        self.Project['pr_start_time'] = ':'.join(start_date.split('T')[1].split(':')[:2])
+        self.Project['pr_end_date'] = end_date.split('T')[0]
+        self.Project['pr_end_time'] = ':'.join(end_date.split('T')[1].split(':')[:2])
+        
+        self.FluxCorrection_SpectralAnalysis_General['sa_start_date'] = start_date.split('T')[0]
+        self.FluxCorrection_SpectralAnalysis_General['sa_start_time'] = ':'.join(start_date.split('T')[1].split(':')[:2])
+        self.FluxCorrection_SpectralAnalysis_General['sa_end_date'] = end_date.split('T')[0]
+        self.FluxCorrection_SpectralAnalysis_General['sa_end_time'] = ':'.join(end_date.split('T')[1].split(':')[:2])
 
-#     def fill(self,ghgMetadataFile):
-#         for key,value in ghgMetadataFile.Project.items():
-#             if key in getattr(self,'Project'):
-#                 self.Project[key]=value
-#         self.Project['master_sonic'] = ghgMetadataFile.Instruments['instr_1_id']
-#         for key,value in self.Project.items():
-#             if key.startswith('col_'):
-#                 col = key.split('col_')[-1]
-#                 if col in ghgMetadataFile.variableColumns:
-#                     self.Project[key] = ghgMetadataFile.variableColumns[col]
-#         self.Project['file_name'] = ghgMetadataFile.Project['file_name'].replace('.metadata','.eddypro')
-#         self.writeFile()
+        self.RawProcess_TiltCorrection_Settings['pf_start_date'] = start_date.split('T')[0]
+        self.RawProcess_TiltCorrection_Settings['pf_start_time'] = ':'.join(start_date.split('T')[1].split(':')[:2])
+        self.RawProcess_TiltCorrection_Settings['pf_end_date'] = end_date.split('T')[0]
+        self.RawProcess_TiltCorrection_Settings['pf_end_time'] = ':'.join(end_date.split('T')[1].split(':')[:2])
+        
+        self.RawProcess_TimelagOptimization_Settings['to_start_date'] = start_date.split('T')[0]
+        self.RawProcess_TimelagOptimization_Settings['to_start_time'] = ':'.join(start_date.split('T')[1].split(':')[:2])
+        self.RawProcess_TimelagOptimization_Settings['to_end_date'] = end_date.split('T')[0]
+        self.RawProcess_TimelagOptimization_Settings['to_end_time'] = ':'.join(end_date.split('T')[1].split(':')[:2])
+
+        self.RawProcess_General['dec_date'] = start_date.split('T')[0]
+        
     def selectColumns(self,Instruments,FileDescription):
         self.Project['master_sonic'] = Instruments['instr_1_model']
         print('Exclude col_ts, forces to use sonic temp?')
@@ -142,7 +140,7 @@ class ghgMetadataWriter(ghgTemplate):
             fout.write(';GHG_METADATA\n')
             ghgMetadataFile.write(fout, space_around_delimiters=False)
         EP = ecf32ProjectWriter()
-        EP.newFile()
+        EP.newFile(self.Project['start_date'],self.Project['end_date'])
         EP.selectColumns(self.Instruments,self.FileDescription)
         EP.writeFile(filepath)
 
