@@ -152,7 +152,7 @@ class ghgMetadataWriter(ghgTemplate):
             return({key:value for key,value in self.__dict__.items() if key in ghgTemplate.__annotations__})
 
 @dataclass(kw_only=True)
-class highFrequency(ghgMetadataWriter):
+class HighFrequency(ghgMetadataWriter):
     outputPath: str
     dataIntervalSeconds: str = 1800
     missingSampleAllowance: float = 0.1 # default pct from eddypro
