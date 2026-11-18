@@ -110,26 +110,6 @@ subroutine hms_current_string(string)
     s = values(7)
     mm = values(8)
 
-!    if (h < 12) then
-!        ampm = 'AM'
-!    else if (h == 12) then
-!        if (n == 0 .and. s == 0) then
-!            ampm = 'Nn'
-!        else
-!            ampm = 'PM'
-!        end if
-!    else
-!        h = h - 12
-!        if (h < 12) then
-!            ampm = 'PM'
-!        else if (h == 12) then
-!            if (n == 0 .and. s == 0) then
-!                ampm = 'Md'
-!            else
-!                ampm = 'AM'
-!            end if
-!        end if
-!    end if
     write (string, '(i4,a1,i2.2,a1,i2.2,a1,i2,a1,i2.2,a1,i2.2,a1,i3.3)') &
         year, '-', month, '-', day, ' ',h, ':', n, ':', s, '.', mm
     return

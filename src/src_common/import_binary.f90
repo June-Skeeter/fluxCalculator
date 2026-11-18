@@ -181,11 +181,6 @@ subroutine ImportBinary(FirstRecord, LastRecord, LocCol, fRaw, nrow, ncol, N, Fi
             print *, 'Custom float-32 import'
 
             read(unat) TmpfRaw
-            ! read(unat, *, iostat = io_status) TmpfRaw
-            ! if (io_status /= 0) then 
-            !     print *, 'Read failed IOSTAT =',io_status
-            !     exit
-            ! end if
             close(udf)
             N = SIZE(TmpfRaw,1)
             

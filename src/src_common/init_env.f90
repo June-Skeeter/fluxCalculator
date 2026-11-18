@@ -61,7 +61,6 @@ subroutine InitEnv()
     if(timestring(12:12) == ' ') timestring(12:12) = '0'
     Timestamp_FilePadding = '_' // timestring(1:10) // 'T' &
         // timestring(12:13) // timestring(15:16) // timestring(18:19)
-
     tmpDirPadding = '_' // timestring(1:10) // 'T' &
         // timestring(12:13) // timestring(15:16) // timestring(18:19) // timestring(21:23)
 

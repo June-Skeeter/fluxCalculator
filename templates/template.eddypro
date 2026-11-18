@@ -40,7 +40,7 @@ col_ts=-1
 out_rich=1
 out_metadata=1
 make_dataset=0
-pr_subset=0
+pr_subset=1
 pr_start_date=
 pr_start_time=
 pr_end_date=
@@ -128,6 +128,7 @@ sa_ch4_g1_start=1
 sa_ch4_g1_stop=12
 sa_gas4_g1_start=1
 sa_gas4_g1_stop=12
+keep_parent_fluxnet_file=0
 
 [RawProcess_General]
 data_path=

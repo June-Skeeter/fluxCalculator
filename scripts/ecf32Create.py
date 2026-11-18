@@ -56,25 +56,29 @@ class ecf32ProjectWriter(eddyproTemplate):
         self.Project['binary_nbytes']='4'
         self.Project['binary_little_end']='1'
         # Set times to that of metadata file
-        self.Project['pr_start_date'] = start_date.split('T')[0]
-        self.Project['pr_start_time'] = ':'.join(start_date.split('T')[1].split(':')[:2])
-        self.Project['pr_end_date'] = end_date.split('T')[0]
-        self.Project['pr_end_time'] = ':'.join(end_date.split('T')[1].split(':')[:2])
-        
-        self.FluxCorrection_SpectralAnalysis_General['sa_start_date'] = start_date.split('T')[0]
-        self.FluxCorrection_SpectralAnalysis_General['sa_start_time'] = ':'.join(start_date.split('T')[1].split(':')[:2])
-        self.FluxCorrection_SpectralAnalysis_General['sa_end_date'] = end_date.split('T')[0]
-        self.FluxCorrection_SpectralAnalysis_General['sa_end_time'] = ':'.join(end_date.split('T')[1].split(':')[:2])
+        if start_date == '':
+            self.Project['pr_subset'] = '0'
+        else:
+            self.Project['pr_subset'] = '1'
+            self.Project['pr_start_date'] = start_date.split('T')[0]
+            self.Project['pr_start_time'] = ':'.join(start_date.split('T')[1].split(':')[:2])
+            self.Project['pr_end_date'] = end_date.split('T')[0]
+            self.Project['pr_end_time'] = ':'.join(end_date.split('T')[1].split(':')[:2])
+            
+            self.FluxCorrection_SpectralAnalysis_General['sa_start_date'] = start_date.split('T')[0]
+            self.FluxCorrection_SpectralAnalysis_General['sa_start_time'] = ':'.join(start_date.split('T')[1].split(':')[:2])
+            self.FluxCorrection_SpectralAnalysis_General['sa_end_date'] = end_date.split('T')[0]
+            self.FluxCorrection_SpectralAnalysis_General['sa_end_time'] = ':'.join(end_date.split('T')[1].split(':')[:2])
 
-        self.RawProcess_TiltCorrection_Settings['pf_start_date'] = start_date.split('T')[0]
-        self.RawProcess_TiltCorrection_Settings['pf_start_time'] = ':'.join(start_date.split('T')[1].split(':')[:2])
-        self.RawProcess_TiltCorrection_Settings['pf_end_date'] = end_date.split('T')[0]
-        self.RawProcess_TiltCorrection_Settings['pf_end_time'] = ':'.join(end_date.split('T')[1].split(':')[:2])
-        
-        self.RawProcess_TimelagOptimization_Settings['to_start_date'] = start_date.split('T')[0]
-        self.RawProcess_TimelagOptimization_Settings['to_start_time'] = ':'.join(start_date.split('T')[1].split(':')[:2])
-        self.RawProcess_TimelagOptimization_Settings['to_end_date'] = end_date.split('T')[0]
-        self.RawProcess_TimelagOptimization_Settings['to_end_time'] = ':'.join(end_date.split('T')[1].split(':')[:2])
+            self.RawProcess_TiltCorrection_Settings['pf_start_date'] = start_date.split('T')[0]
+            self.RawProcess_TiltCorrection_Settings['pf_start_time'] = ':'.join(start_date.split('T')[1].split(':')[:2])
+            self.RawProcess_TiltCorrection_Settings['pf_end_date'] = end_date.split('T')[0]
+            self.RawProcess_TiltCorrection_Settings['pf_end_time'] = ':'.join(end_date.split('T')[1].split(':')[:2])
+            
+            self.RawProcess_TimelagOptimization_Settings['to_start_date'] = start_date.split('T')[0]
+            self.RawProcess_TimelagOptimization_Settings['to_start_time'] = ':'.join(start_date.split('T')[1].split(':')[:2])
+            self.RawProcess_TimelagOptimization_Settings['to_end_date'] = end_date.split('T')[0]
+            self.RawProcess_TimelagOptimization_Settings['to_end_time'] = ':'.join(end_date.split('T')[1].split(':')[:2])
 
         self.RawProcess_General['dec_date'] = start_date.split('T')[0]
         
@@ -93,7 +97,7 @@ class ecf32ProjectWriter(eddyproTemplate):
     def writeFile(self,filepath,biometData=None,dynamicMetadata=None,name='eddypro_output'):
         # for temp batch splits, stick with original data and metadata path references
         if not os.path.join('eddypro_output','tmp') in filepath:
-            self.RawProcess_General['data_path'] = os.path.split(filepath)[0]
+            self.RawProcess_General['data_path'] = os.path.join(os.path.split(filepath)[0],'raw')
             self.Project['use_pfile'] = '1'
             self.Project['proj_file'] = filepath
         if filepath.endswith('.metadata'):
@@ -203,7 +207,7 @@ class HighFrequency(ghgMetadataWriter):
         for i in ix:
             yyyymm = f"{i[1].year}{str(i[1].month).zfill(2)}"
             if yyyymm not in fp:
-                fp = os.path.join(self.outputPath,hash,yyyymm)
+                fp = os.path.join(self.outputPath,hash,'raw',yyyymm)
                 os.makedirs(fp,exist_ok=True)
             df = dataframe.loc[(
                 (dataframe.index > i[0])
@@ -227,11 +231,10 @@ class HighFrequency(ghgMetadataWriter):
             else:
                 dataOut = df.values.T.flatten()
             os.makedirs(fp,exist_ok=True)
-            fn = i[1].strftime(self.fileNameTemplate)#.replace('UUID',hash))
+            fn = i[1].strftime(self.fileNameTemplate)
+            print(f"Writing: {fn}")
             fn = os.path.join(fp,fn)
             names.append(fn)
-            print(f"Writing: {fn}")
-            print(df.shape)
             # Transpose to fortran order and flatten to 1D
             dataOut.tofile(fn)
             mdfn = fn.replace('.float32','.json')

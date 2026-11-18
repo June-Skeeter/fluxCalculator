@@ -273,6 +273,7 @@ subroutine NumberOfFilesInDir(DirIn, ext, MatchTemplate, Template, N, rN)
     close(udf)
     call system(comm_del // '"' // trim(adjustl(TmpDir)) &
         // '"*.tmp' // comm_err_redirect)
+    print *, "File counts", N
 end subroutine NumberOfFilesInDir
 
 !***************************************************************************
