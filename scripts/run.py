@@ -86,3 +86,6 @@ class runBatch:
         with open(os.path.join(self.settings['Project']['out_path'],os.path.split(files[0])[-1]),'w+', newline="") as f:
             f.write(h)
             df.to_csv(f,index=False)
+
+if __name__ == '__main__':
+    print('CLI parse here ...')
