@@ -23,3 +23,6 @@ obj
 ep_engine_devtools.py
 ship_exes.sh
 
+### python ###
+__pycache__
+scripts/__pycache__

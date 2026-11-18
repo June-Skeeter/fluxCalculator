@@ -55,8 +55,6 @@ class ecf32ProjectWriter(eddyproTemplate):
         self.Project['binary_eol']='0'
         self.Project['binary_nbytes']='4'
         self.Project['binary_little_end']='1'
-        self.Project['use_biom']='0'
-        print('Warning: Turn use_biom on')
         # Set times to that of metadata file
         self.Project['pr_start_date'] = start_date.split('T')[0]
         self.Project['pr_start_time'] = ':'.join(start_date.split('T')[1].split(':')[:2])
@@ -92,15 +90,34 @@ class ecf32ProjectWriter(eddyproTemplate):
                         self.Project[col] = key.split('_')[1]
                         continue
 
-    def writeFile(self,filepath):
-        self.Project['use_pfile'] = '1'
-        self.Project['proj_file'] = filepath
-        self.RawProcess_General['data_path'] = os.path.split(filepath)[0]
-        filepath = filepath.replace('.metadata','.eddypro')
+    def writeFile(self,filepath,biometData=None,dynamicMetadata=None,name='eddypro_output'):
+        # for temp batch splits, stick with original data and metadata path references
+        if not os.path.join('eddypro_output','tmp') in filepath:
+            self.RawProcess_General['data_path'] = os.path.split(filepath)[0]
+            self.Project['use_pfile'] = '1'
+            self.Project['proj_file'] = filepath
+        if filepath.endswith('.eddypro'):
+            filepath = filepath.replace('.metadata','.eddypro')
         self.Project['file_name'] = filepath
-        self.Project['out_path'] = os.path.join(os.path.split(filepath)[0],'eddypro_out_test')
-        # self.Project['file_prototype'] = os.path.split(filepath)[1].replace('.eddypro','_yyyymmddTHHMM.float32')
-
+        os.makedirs(os.path.split(filepath)[0],exist_ok=True)
+        self.Project['out_path'] = os.path.join(os.path.split(filepath)[0],name)
+        if biometData:
+            if os.path.isdir(biometData):
+                self.Project['use_biom'] = '3'
+                self.Project['biom_dir'] = biometData
+                self.Project['biom_rec'] = '1'
+                self.Project['biom_ext'] = '.csv'
+            elif os.path.isfile(biometData):
+                self.Project['use_biom'] = '2'
+                self.Project['biom_file'] = biometData
+            else:
+                exit('invalid biomet file/path')
+        if dynamicMetadata:
+            if os.path.isfile(dynamicMetadata):
+                self.Project['use_dyn_md_file'] = '1'
+                self.Project['dyn_metadata_file'] = dynamicMetadata
+            else:
+                exit('invalid dynamicMetadata file')
         epOut = ConfigParser()
         for key in eddyproTemplate.__annotations__:
             if key == 'DEFAULT':
@@ -125,7 +142,7 @@ class ghgMetadataWriter(ghgTemplate):
         self.Site['altitude'] = altitude
         self.Site['canopy_height'] = canopy_height
 
-    def writeFiles(self,filepath):
+    def writeFiles(self,filepath,biometData,dynamicMetadata):
         filepath = os.path.abspath(filepath)
         self.Project['file_name'] = filepath
         self.Project['creation_date'] = datetime.now().isoformat()
@@ -142,7 +159,7 @@ class ghgMetadataWriter(ghgTemplate):
         EP = ecf32ProjectWriter()
         EP.newFile(self.Project['start_date'],self.Project['end_date'])
         EP.selectColumns(self.Instruments,self.FileDescription)
-        EP.writeFile(filepath)
+        EP.writeFile(filepath,biometData,dynamicMetadata)
 
     def asDictionary(self,flat=False):
         if flat:
