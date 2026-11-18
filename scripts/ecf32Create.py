@@ -96,7 +96,7 @@ class ecf32ProjectWriter(eddyproTemplate):
             self.RawProcess_General['data_path'] = os.path.split(filepath)[0]
             self.Project['use_pfile'] = '1'
             self.Project['proj_file'] = filepath
-        if filepath.endswith('.eddypro'):
+        if filepath.endswith('.metadata'):
             filepath = filepath.replace('.metadata','.eddypro')
         self.Project['file_name'] = filepath
         os.makedirs(os.path.split(filepath)[0],exist_ok=True)
@@ -213,7 +213,6 @@ class HighFrequency(ghgMetadataWriter):
             if df.empty:
                 continue
             elif len(df) > expectedShape:
-                # breakpoint()
                 exit('Too man samples, unexpected error')
             elif len(df) < expectedShape:
                 if len(df) < expectedShape * (1-self.missingSampleAllowance):
