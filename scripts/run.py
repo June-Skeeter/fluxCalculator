@@ -15,6 +15,13 @@ from glob import glob
 import shutil
 import os
 
+# stager executions by to prevent rp calls from generating the same tmp dir
+def stagger(counter,lock,delay,steps):
+    print(f'Initializing process {counter.value}: {steps[counter.value]}')
+    with lock:
+        ID = counter.value
+        counter.value += 1
+    time.sleep(ID*delay)
 
 @dataclass(kw_only=True)
 class runBatch:
@@ -65,13 +72,6 @@ class runBatch:
                 batchSteps[i] = f"{step.Project['pr_start_date']} {step.Project['pr_start_time']} {step.Project['pr_end_date']} {step.Project['pr_end_time']}"
                 rpArgs = [os.path.join(self.system,'eddypro_rp'), '-s', self.system, filename]
                 batches.append(rpArgs)
-            # stager executions by to prevent rp calls from generating the same tmp dir
-            def stagger(counter,lock,delay,steps):
-                print(f'Initializing process {counter.value}: {steps[counter.value]}')
-                with lock:
-                    ID = counter.value
-                    counter.value += 1
-                time.sleep(ID*delay)
             manger = multiprocessing.Manager()
             counter = manger.Value('i',0)
             lock = manger.Lock()
@@ -82,7 +82,7 @@ class runBatch:
                 stderr=subprocess.STDOUT,
                 text=True
                 )
-            with ProcessPoolExecutor(max_workers=max_workers,initializer=stagger,initargs=(counter,lock,0.5,batchSteps)) as executor:
+            with ProcessPoolExecutor(max_workers=max_workers,initializer=stagger,initargs=(counter,lock,0.5,batchSteps.copy())) as executor:
                 out = {i:result for i,result in enumerate(executor.map(sp,batches))}
             for p,log in out.items():
                 print(f'Process {p}')
