@@ -32,7 +32,6 @@ class runBatch:
 
     def __post_init__(self):
         print(f'\n\nIntiating EddyPro Run:\n{self.eddyproFile}\n{datetime.now().isoformat()}\n')
-        breakpoint()
         T1 = time.time()
         if self.system == 'windows': self.system = 'win'
         elif self.system == 'darwin': self.system = 'mac'
