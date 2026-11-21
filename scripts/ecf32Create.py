@@ -178,7 +178,8 @@ class HighFrequency(ghgMetadataWriter):
     dataIntervalSeconds: str = 1800
     missingSampleAllowance: float = 0.1 # default pct from eddypro
     fileNameTemplate: str = "%Y%m%dT%H%M.float32"
-    def loadDataFrame(self,dataframe):
+
+    def loadDataFrame(self,dataframe,sourceFileName='None'):
         expectedShape = int(pd.to_timedelta(f"{self.dataIntervalSeconds}s").total_seconds()/dataframe.index.diff().median().total_seconds())
         flag = [c for c,v in dataframe.dtypes.items() if str(v) != 'float32']
         if len(flag):
@@ -238,7 +239,7 @@ class HighFrequency(ghgMetadataWriter):
             # Transpose to fortran order and flatten to 1D
             dataOut.tofile(fn)
             mdfn = fn.replace('.float32','.json')
-            mdout = {'.shape':df.shape,'.frequency':dataFrequencyHz,'start_time':df.index[0].isoformat()}|metadata
+            mdout = {'.sourceFileName':sourceFileName,'.shape':df.shape,'.frequency':dataFrequencyHz,'start_time':df.index[0].isoformat()}|metadata
             with open(mdfn,'w+') as f:
                 json.dump(mdout,f,indent=4)
         if len(names):

@@ -47,9 +47,9 @@ class runBatch:
             print(f'RP and FCC completed: {time.time()-T1}')
         else:
             if self.multiProcessing is True:
-                max_workers = 2
+                max_workers = int(os.cpu_count()/1.5)
             else:
-                max_workers = int(self.multiProcessing)
+                max_workers = self.multiProcessing
             timesteps = [datetime.strptime(step,'%Y%m%dT%H%M.float32')
                           for fld in os.listdir(dpath) 
                           if fld.isdigit() 
@@ -148,8 +148,7 @@ class runBatch:
                 df.to_csv(f,header=False,index=False)
             return(fname)
         except:
-            print('[?????]')
-            breakpoint()
+            exit('Error during combine')
 
 if __name__ == '__main__':
     print('CLI parse here ...')
